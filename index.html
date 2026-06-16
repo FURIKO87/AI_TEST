@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>배드 가이즈와 함께하는 영어 모험! (The Bad Guys English Adventure)</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:ital,wght@0,300;0,400;0,700;1,400;1,700&family=Outfit:wght@100..900&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Main Style Sheet -->
+    <link rel="stylesheet" href="style.css">
+    <!-- PDF.js library for PDF scanning -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+</head>
+<body>
+    <!-- 1단계 모달: 사용자 선택 및 이름 등록 -->
+    <div id="user-modal" class="modal">
+        <div class="modal-content text-center">
+            <h2 class="comic-title">👋 배드 가이즈 영어 모험에 온 걸 환영해!</h2>
+            <p class="subtitle">누가 공부를 시작하나요? 이름을 선택하거나 새로 만들어보세요.</p>
+            
+            <!-- 기존 사용자 목록 -->
+            <div id="existing-users-section" class="user-select-section" style="display: none;">
+                <h4>기존 모험가 선택</h4>
+                <div class="user-buttons-grid" id="existing-users-grid">
+                    <!-- JS에서 버튼 동적 생성 -->
+                </div>
+                <div class="divider">또는</div>
+            </div>
+
+            <!-- 새 사용자 추가 -->
+            <div class="new-user-section">
+                <h4>새 모험가 등록하기</h4>
+                <div class="user-input-row">
+                    <input type="text" id="new-username-input" class="custom-input text-center" placeholder="이름을 입력하세요 (예: 철수, 영희)" maxlength="10">
+                    <button id="btn-create-user" class="btn primary-btn">등록하기 ✨</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2단계 모달: 캐릭터 파트너 선택 (언제든 파트너 변경 가능) -->
+    <div id="partner-modal" class="modal" style="display: none;">
+        <div class="modal-content text-center">
+            <h2 class="comic-title">🤝 함께 공부할 파트너를 골라봐!</h2>
+            <p class="subtitle">배드 가이즈 멤버 중 마음에 드는 친구를 언제든 바꿀 수 있어요.</p>
+            
+            <div class="character-grid">
+                <div class="char-select-card" data-char="wolf">
+                    <div class="char-avatar wolf-bg">🐺</div>
+                    <h3>Mr. Wolf (울프)</h3>
+                    <p class="char-quote">"안녕! 난 리더 울프야. 우리 함께 영어 모험을 떠나볼까?"</p>
+                </div>
+                <div class="char-select-card" data-char="snake">
+                    <div class="char-avatar snake-bg">🐍</div>
+                    <h3>Mr. Snake (스네이크)</h3>
+                    <p class="char-quote">"쉿... 귀찮게 하지 말고 빨리 단어부터 외우자고."</p>
+                </div>
+                <div class="char-select-card" data-char="shark">
+                    <div class="char-avatar shark-bg">🦈</div>
+                    <h3>Mr. Shark (샤크)</h3>
+                    <p class="char-quote">"하하하! 변장이 특기인 샤크야! 영어 공부도 꿀잼이지!"</p>
+                </div>
+                <div class="char-select-card" data-char="piranha">
+                    <div class="char-avatar piranha-bg">🐟</div>
+                    <h3>Mr. Piranha (피라냐)</h3>
+                    <p class="char-quote">"우와아아!! 다 준비됐어! 나랑 같이 100점 맞으러 가자!"</p>
+                </div>
+            </div>
+            <div class="modal-controls">
+                <button id="btn-close-partner-modal" class="btn" style="display: none;">닫기 ✖</button>
+                <button id="start-adventure-btn" class="btn primary-btn large-btn" disabled>선택 완료! 🚀</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 메인 어플리케이션 컨테이너 -->
+    <div class="app-container">
+        
+        <!-- 헤더 영역 -->
+        <header class="app-header">
+            <div class="logo-area">
+                <span class="logo-badge">CHAPTER 1</span>
+                <h1 class="logo-title">THE BAD GUYS <span class="highlight">ENGLISH</span></h1>
+            </div>
+            
+            <!-- 유저 정보 및 설정 영역 -->
+            <div class="user-status-area">
+                <div class="user-profile-badge">
+                    <i class="fa-solid fa-user-astronaut text-sky" style="font-size: 1.5rem;"></i>
+                    <div class="user-info-text">
+                        <div class="user-current-name" id="current-username-display">모험가</div>
+                        <div class="user-action-links">
+                            <button id="btn-change-user" class="header-action-btn"><i class="fa-solid fa-user-gear"></i> 유저 변경</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="partner-badge" id="current-partner-badge">
+                    <span class="partner-avatar" id="header-avatar">🐺</span>
+                    <div>
+                        <div class="partner-name-row">
+                            <span class="partner-name" id="header-name">Mr. Wolf</span>
+                            <button id="btn-change-partner" class="header-action-btn"><i class="fa-solid fa-arrows-rotate"></i> 변경</button>
+                        </div>
+                        <div class="partner-message" id="header-message">"멋진 준비가 되었어!"</div>
+                    </div>
+                </div>
+                
+                <div class="score-container">
+                    <span class="score-label"><i class="fa-solid fa-crown text-yellow"></i> 뱃지 개수</span>
+                    <span class="score-value" id="badge-count">0 / 3</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- 전체 대시보드 / 맵 레이아웃 -->
+        <main class="app-main">
+            <!-- 사이드바: 탭 메뉴 -->
+            <nav class="tab-sidebar">
+                <div class="intro-card">
+                    <img src="assets/main_illustration.png" alt="Bad Guys Study Illustration" class="intro-img">
+                    <p class="intro-desc">나쁜 녀석들의 착해지기 대작전! 1단원 <strong>"The Bad Guys?"</strong>를 마스터해보자!</p>
+                </div>
+                
+                <ul class="tab-menu">
+                    <li class="tab-item active" data-tab="tab-lobby">
+                        <i class="fa-solid fa-house"></i>
+                        <span>홈 & 모험 지도</span>
+                    </li>
+                    <li class="tab-item" data-tab="tab-words">
+                        <i class="fa-solid fa-book-open"></i>
+                        <span>1단계: 단어 & 숙어</span>
+                    </li>
+                    <li class="tab-item" data-tab="tab-sentence">
+                        <i class="fa-solid fa-puzzle-piece"></i>
+                        <span>2단계: 문장 빌더 & 쓰기</span>
+                    </li>
+                    <li class="tab-item" data-tab="tab-quiz">
+                        <i class="fa-solid fa-award"></i>
+                        <span>3단계: 퀴즈 & 줄거리 요약</span>
+                    </li>
+                    <li class="tab-item" data-tab="tab-pdf">
+                        <i class="fa-solid fa-file-pdf"></i>
+                        <span>마법의 PDF 단어 스캐너</span>
+                    </li>
+                </ul>
+            </nav>
+
+            <!-- 메인 컨텐츠 영역 -->
+            <section class="tab-content-container">
+                
+                <!-- 탭: 홈 & 모험 지도 -->
+                <div id="tab-lobby" class="tab-pane active">
+                    <div class="welcome-banner">
+                        <div class="welcome-text">
+                            <h2>환영해, <span id="lobby-username-span" class="text-sky">모험가</span> 친구! 🌟</h2>
+                            <p>오늘의 학습 파트너 <strong id="welcome-partner-name">Mr. Wolf</strong>와 함께 배드 가이즈 책 속 영어를 배워보자!</p>
+                            <p class="hint-text">* 각 단계를 완료할 때마다 모험 지도에 초록불이 켜지고 뱃지를 획득해요!</p>
+                        </div>
+                        <div class="welcome-character-spotlight" id="lobby-partner-spotlight">
+                            🐺
+                        </div>
+                    </div>
+
+                    <!-- 모험 지도 -->
+                    <div class="adventure-map">
+                        <h3 class="section-title"><i class="fa-solid fa-map"></i> 우리들의 학습 로드맵</h3>
+                        <div class="map-path">
+                            <div class="map-node completed" id="node-start">
+                                <div class="node-icon"><i class="fa-solid fa-flag-checkered"></i></div>
+                                <span>파트너 선택</span>
+                            </div>
+                            <div class="map-line" id="line-1"></div>
+                            
+                            <div class="map-node locked" id="node-words" onclick="switchTab('tab-words')">
+                                <div class="node-icon"><i class="fa-solid fa-book-open"></i></div>
+                                <span>1단계: 단어/숙어</span>
+                            </div>
+                            <div class="map-line" id="line-2"></div>
+                            
+                            <div class="map-node locked" id="node-sentence" onclick="switchTab('tab-sentence')">
+                                <div class="node-icon"><i class="fa-solid fa-puzzle-piece"></i></div>
+                                <span>2단계: 문장 조립/작성</span>
+                            </div>
+                            <div class="map-line" id="line-3"></div>
+                            
+                            <div class="map-node locked" id="node-quiz" onclick="switchTab('tab-quiz')">
+                                <div class="node-icon"><i class="fa-solid fa-award"></i></div>
+                                <span>3단계: 평가/요약</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 랭킹판 / 리더보드 (선의의 경쟁용) -->
+                    <div class="card-section" id="leaderboard-section">
+                        <h3 class="section-title text-yellow"><i class="fa-solid fa-trophy"></i> 우리들의 영어 모험 랭킹판</h3>
+                        <p class="quest-desc">가족이나 친구들의 학습 상태를 보며 선의의 경쟁을 펼쳐 보세요!</p>
+                        
+                        <div class="leaderboard-wrapper">
+                            <table class="leaderboard-table">
+                                <thead>
+                                    <tr>
+                                        <th>순위</th>
+                                        <th>모험가 이름</th>
+                                        <th>파트너</th>
+                                        <th>진행 완료 단계</th>
+                                        <th>획득한 뱃지</th>
+                                        <th>진행률</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="leaderboard-tbody">
+                                    <!-- JS에서 동적으로 순위표 렌더링 -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- 캐릭터들의 격려 메시지 보드 -->
+                    <div class="character-speech-board">
+                        <h3 class="section-title"><i class="fa-solid fa-comment-dots"></i> 친구들의 한마디!</h3>
+                        <div class="speech-bubble-container">
+                            <div class="speech-avatar" id="speech-avatar">🐺</div>
+                            <div class="speech-bubble">
+                                <div class="speech-name" id="speech-name">Mr. Wolf (울프)</div>
+                                <div class="speech-text" id="speech-text">"첫 번째 챕터 'The Bad Guys?'에는 우리가 나쁜 녀석들이 아니라는 걸 증명하기 위해 노력하는 흥미진진한 대사들이 많이 나와! 얼른 1단계 단어 공부부터 시작하자!"</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 탭: 1단계 단어 & 숙어 -->
+                <div id="tab-words" class="tab-pane">
+                    <div class="section-header">
+                        <h2>📖 1단계: 단어 & 숙어 마스터 (Vocabulary & Phrases)</h2>
+                        <p>카드 뒤에 숨은 뜻을 확인하고, 🔊 소리를 들어보며 따라 읽어보세요!</p>
+                    </div>
+
+                    <!-- 단어 필터 (전체보기, 미학습, 학습완료) -->
+                    <div class="word-filters">
+                        <button class="filter-btn active" id="btn-filter-all">전체 카드 (<span id="cnt-all">0</span>)</button>
+                        <button class="filter-btn" id="btn-filter-hard">🔥 복습 필요 (<span id="cnt-hard">0</span>)</button>
+                        <button class="filter-btn" id="btn-filter-easy">✅ 외웠어요 (<span id="cnt-easy">0</span>)</button>
+                    </div>
+
+                    <!-- 단어 카드 영역 -->
+                    <div class="word-card-container">
+                        <!-- 하나의 대형 카드 롤러 형태로 만듬 -->
+                        <div class="word-card-flipper-container">
+                            <div class="word-card" id="current-word-card">
+                                <div class="card-side card-front">
+                                    <div class="card-badge" id="word-type">VOCABULARY</div>
+                                    <div class="word-english" id="word-english">look like</div>
+                                    <button class="tts-btn" id="word-tts-btn"><i class="fa-solid fa-volume-high"></i> 발음 듣기</button>
+                                    <div class="tap-hint"><i class="fa-solid fa-hand-pointer animate-pulse"></i> 카드를 누르면 뜻이 보여요!</div>
+                                </div>
+                                <div class="card-side card-back">
+                                    <div class="card-badge back-badge">뜻과 예문</div>
+                                    <div class="word-korean" id="word-korean">~처럼 보이다</div>
+                                    <div class="word-sentence-en" id="word-ex-en">"You don't look like a good guy."</div>
+                                    <div class="word-sentence-ko" id="word-ex-ko">"너는 착한 사람처럼 보이지 않아."</div>
+                                    <div class="tap-hint">카드를 다시 누르면 영어 단어가 보여요!</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 컨트롤러 -->
+                        <div class="card-controls">
+                            <button class="btn control-btn" id="btn-prev-word"><i class="fa-solid fa-arrow-left"></i> 이전</button>
+                            <span class="card-indicator" id="word-card-indicator">1 / 15</span>
+                            <button class="btn control-btn" id="btn-next-word">다음 <i class="fa-solid fa-arrow-right"></i></button>
+                        </div>
+
+                        <!-- 학습 여부 토글 버튼 -->
+                        <div class="card-action-buttons">
+                            <button class="btn btn-action hard-btn" id="btn-mark-hard">
+                                <i class="fa-solid fa-circle-exclamation"></i> 헷갈려요 (다음에 또 볼래)
+                            </button>
+                            <button class="btn btn-action easy-btn" id="btn-mark-easy">
+                                <i class="fa-solid fa-circle-check"></i> 확실히 외웠어요!
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="step-footer">
+                        <button class="btn primary-btn large-btn" id="finish-words-btn">단어 학습 완료! 2단계로 출발 👉</button>
+                    </div>
+                </div>
+
+                <!-- 탭: 2단계 문장 빌더 & 쓰기 -->
+                <div id="tab-sentence" class="tab-pane">
+                    <div class="section-header">
+                        <h2>🧩 2단계: 문장 빌더 & 나만의 문장 만들기 (Sentence Builder & Writing)</h2>
+                        <p>문장을 순서대로 맞추고, 직접 나만의 멋진 영어 문장도 지어보세요!</p>
+                    </div>
+
+                    <!-- 파트 A: 문장 퍼즐 -->
+                    <div class="card-section">
+                        <h3 class="comic-subtitle"><i class="fa-solid fa-puzzle-piece text-lime"></i> 도전! 영어 문장 단어 퍼즐</h3>
+                        <p class="quest-desc">아래의 한글 뜻을 보고, 흩어진 영어 단어 조각을 순서대로 클릭하여 완성해 보세요.</p>
+                        
+                        <div class="puzzle-area">
+                            <div class="puzzle-korean-guide" id="puzzle-korean-guide">
+                                "난 착한 늑대야!"
+                            </div>
+                            
+                            <!-- 완성되는 단어가 들어갈 바구니 -->
+                            <div class="puzzle-answer-slots" id="puzzle-answer-slots">
+                                <!-- 여기에 조립된 단어 카드가 들어옴 -->
+                            </div>
+                            
+                            <!-- 단어 조각들 -->
+                            <div class="puzzle-word-pool" id="puzzle-word-pool">
+                                <!-- 여기에 뒤섞인 단어 버튼들이 들어옴 -->
+                            </div>
+
+                            <div class="puzzle-controls">
+                                <button class="btn reset-btn" id="btn-reset-puzzle"><i class="fa-solid fa-rotate-left"></i> 다시 하기</button>
+                                <button class="btn primary-btn" id="btn-check-puzzle" disabled>정답 확인! ✔</button>
+                            </div>
+                            <div class="puzzle-result-feedback" id="puzzle-feedback">
+                                <!-- 성공 실패 메시지 -->
+                            </div>
+                        </div>
+
+                        <div class="puzzle-progress-bar">
+                            <div class="puzzle-progress-fill" id="puzzle-progress-fill" style="width: 20%;"></div>
+                        </div>
+                        <div class="text-center margin-top-10" id="puzzle-indicator">문장 1 / 5</div>
+                    </div>
+
+                    <!-- 파트 B: 나만의 영어 문장 만들기 -->
+                    <div class="card-section margin-top-20" id="writing-challenge-section" style="display:none;">
+                        <h3 class="comic-subtitle"><i class="fa-solid fa-pen-fancy text-sky"></i> 스페셜 챌린지! 나만의 문장 만들기</h3>
+                        <p class="quest-desc">오늘 배운 핵심 단어/숙어를 사용해서 나만의 문장을 직접 지어볼까요? (늑대 파트너가 힌트를 줄 거예요!)</p>
+                        
+                        <div class="writing-quest-box">
+                            <div class="writing-hint-bubble">
+                                <div class="hint-avatar" id="writing-hint-avatar">🐺</div>
+                                <div class="hint-text-box">
+                                    <strong>꿀팁 가이드:</strong><br>
+                                    <span id="writing-hint-text">`look like`(~처럼 보이다)를 사용해서 나만의 멋진 영문장을 써봐! <br>예시: <em>"It looks like a monster!"</em> (그것은 괴물처럼 보여!)</span>
+                                </div>
+                            </div>
+                            
+                            <div class="writing-input-area">
+                                <input type="text" class="custom-input" id="custom-sentence-input" placeholder="여기에 나만의 영어 문장을 지어 쓰세요.">
+                                <button class="btn primary-btn" id="btn-submit-writing">문장 만들기 완료! ✍</button>
+                            </div>
+                            
+                            <div class="writing-feedback" id="writing-feedback"></div>
+                        </div>
+                    </div>
+
+                    <div class="step-footer">
+                        <button class="btn primary-btn large-btn" id="finish-sentence-btn" disabled>문장 학습 완료! 3단계로 출발 👉</button>
+                    </div>
+                </div>
+
+                <!-- 탭: 3단계 퀴즈 & 요약 -->
+                <div id="tab-quiz" class="tab-pane">
+                    <div class="section-header">
+                        <h2>🏆 3단계: 단원 평가 & 줄거리 요약 (Chapter Quiz & Summary)</h2>
+                        <p>Chapter 1 모험의 마지막 관문! 퀴즈를 풀고 줄거리 요약 글을 적어보세요!</p>
+                    </div>
+
+                    <!-- 파트 A: 챕터 퀴즈 -->
+                    <div class="card-section" id="quiz-section-container">
+                        <h3 class="comic-subtitle"><i class="fa-solid fa-list-check text-yellow"></i> 1단원 확인 퀴즈</h3>
+                        
+                        <div class="quiz-question-box" id="quiz-question-box">
+                            <div class="quiz-num" id="quiz-number">Q1.</div>
+                            <div class="quiz-text" id="quiz-text">"look like"의 올바른 한국어 뜻은 무엇일까요?</div>
+                            
+                            <div class="quiz-options-list" id="quiz-options-list">
+                                <!-- 옵션 카드들 -->
+                            </div>
+                            
+                            <div class="quiz-feedback" id="quiz-feedback"></div>
+                        </div>
+
+                        <div class="quiz-progress-bar">
+                            <div class="quiz-progress-fill" id="quiz-progress-fill" style="width: 0%;"></div>
+                        </div>
+                    </div>
+
+                    <!-- 파트 B: 줄거리 요약 & 수정하기 -->
+                    <div class="card-section margin-top-20" id="summary-section-container" style="display:none;">
+                        <h3 class="comic-subtitle"><i class="fa-solid fa-book text-lime"></i> 단원 줄거리 요약하기 & 셀프 수정</h3>
+                        <p class="quest-desc">Chapter 1에서 있었던 일을 한글이나 영어로 자유롭게 요약해서 아래에 적어보세요!</p>
+                        
+                        <div class="summary-editor-wrapper">
+                            <div class="editor-pane">
+                                <h4>✍ 내가 쓰는 요약문</h4>
+                                <textarea class="summary-textarea" id="user-summary-textarea" placeholder="여기에 줄거리를 요약해서 써보세요. (예: 늑대 울프가 친구들을 소개하며 자신들은 나쁜 녀석들이 아니라고 말했다...)"></textarea>
+                                <div class="text-right">
+                                    <button class="btn primary-btn" id="btn-submit-summary">요약 다 썼어요! 비교해볼래요 🔍</button>
+                                </div>
+                            </div>
+                            
+                            <div class="model-summary-pane" id="model-summary-pane" style="display: none;">
+                                <h4>📖 정답 및 모범 요약문 (Model Summary)</h4>
+                                <div class="model-summary-content">
+                                    <h5>영어 요약 (English)</h5>
+                                    <p class="summary-en-model">Mr. Wolf introduces himself and his friends: Mr. Snake, Mr. Piranha, and Mr. Shark. Even though everyone thinks they are "Big Bad Wolf" or scary monsters, they decide to form the Good Guys Club to do nice things and save animals!</p>
+                                    <hr>
+                                    <h5>한글 요약 (Korean)</h5>
+                                    <p class="summary-ko-model">늑대(Mr. Wolf)가 자신과 친구들(뱀, 피라냐, 상어)을 소개합니다. 세상 사람들이 자신들을 무서운 악당이나 괴물로 오해하지만, 이들은 사람들의 생각을 바꾸기 위해 '착한 녀석들 클럽'을 만들어 착한 일을 하기로 결심하고 첫 임무를 준비합니다.</p>
+                                </div>
+                                <div class="review-instruction alert alert-info">
+                                    <i class="fa-solid fa-circle-info"></i> 모범 요약문과 비교하면서 내 요약문의 부족한 부분이나 틀린 글씨를 검토하고 **왼쪽 요약문**을 자유롭게 수정해 보세요!
+                                </div>
+                                <div class="text-right margin-top-10">
+                                    <button class="btn easy-btn" id="btn-finish-summary-review">검토 및 최종 수정 완료! 🎉</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 성공 보상 화면 (숨김상태) -->
+                    <div class="quiz-success-overlay" id="quiz-success-overlay" style="display: none;">
+                        <div class="success-card">
+                            <div class="trophy-icon"><i class="fa-solid fa-trophy text-yellow"></i></div>
+                            <h2>우와! 아주 멋져요!</h2>
+                            <p>Chapter 1 "The Bad Guys?" 모험을 완벽하게 마쳤습니다!</p>
+                            <div class="badge-display">
+                                <span class="badge-item"><i class="fa-solid fa-shield-halved text-lime"></i> 늑대 대장 배지</span>
+                                <span class="badge-item"><i class="fa-solid fa-shield-halved text-sky"></i> 영어 문장 왕 배지</span>
+                                <span class="badge-item"><i class="fa-solid fa-shield-halved text-yellow"></i> 줄거리 요약가 배지</span>
+                            </div>
+                            <button class="btn primary-btn large-btn" id="btn-reset-current-user">다시 도전하기! 🔄</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 탭: 마법의 PDF 단어 스캐너 -->
+                <div id="tab-pdf" class="tab-pane">
+                    <div class="section-header">
+                        <h2>🧙‍♂️ 마법의 PDF 단어 스캐너 (Custom PDF Word Scanner)</h2>
+                        <p>소장하고 계신 PDF(예: <em>Pages from The Bad Guys_CH1_Aaron Blabey.pdf</em>)를 업로드하면 어려운 영어 단어를 쏙쏙 스캔해 줍니다!</p>
+                    </div>
+
+                    <div class="card-section">
+                        <!-- 드롭 존 -->
+                        <div class="pdf-drop-zone" id="pdf-drop-zone">
+                            <i class="fa-solid fa-cloud-arrow-up drop-icon"></i>
+                            <h3>여기에 PDF 파일을 드래그 앤 드롭 하거나 클릭하여 파일을 선택해 주세요</h3>
+                            <p class="hint">*.pdf 파일만 지원합니다.</p>
+                            <input type="file" id="pdf-file-input" accept="application/pdf" style="display: none;">
+                        </div>
+
+                        <!-- 진행율 인디케이터 -->
+                        <div class="scanner-progress-container" id="scanner-progress-container" style="display: none;">
+                            <div class="progress-bar-label">PDF 문서 페이지 분석 중... (<span id="scan-progress-text">0%</span>)</div>
+                            <div class="scanner-progress-bar">
+                                <div class="scanner-progress-fill" id="scanner-progress-fill" style="width: 0%;"></div>
+                            </div>
+                        </div>
+
+                        <!-- 분석 결과 창 -->
+                        <div class="scan-result-container" id="scan-result-container" style="display: none;">
+                            <h3 class="comic-subtitle"><i class="fa-solid fa-wand-magic-sparkles text-yellow"></i> 스캔 마법으로 찾아낸 단어 리스트</h3>
+                            <p class="quest-desc">책 텍스트에서 추출된 단어들을 클릭해 보면 뜻을 확인할 수 있고, 나만의 미니 단어장으로 공부할 수 있어요!</p>
+                            
+                            <div class="word-card-grid" id="scanned-words-grid">
+                                <!-- 여기에 추출된 단어 버튼들이 생김 -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </section>
+        </main>
+    </div>
+
+    <!-- Confetti Canvas (학습 완료 축하용) -->
+    <canvas id="confetti-canvas"></canvas>
+
+    <!-- App JavaScript -->
+    <script src="app.js"></script>
+</body>
+</html>
